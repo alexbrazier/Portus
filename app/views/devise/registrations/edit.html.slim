@@ -15,17 +15,19 @@
                 = f.label :email
               - else
                 = f.label :email, "Email", class: "control-label", title: "This profile is not complete. You need to provide an email first"
-              = f.email_field(:email, class: 'form-control', required: true, autofocus: true)
+              = f.email_field(:email, class: 'form-control', required: true, autofocus: true, disabled: current_user.provider == 'crowd')
 
           - if APP_CONFIG.enabled?("display_name")
             .form-group
               .field
                 = f.label :display_name
-                = f.text_field(:display_name, class: 'form-control')
+                = f.text_field(:display_name, class: 'form-control', disabled: current_user.provider == 'crowd')
 
-          .form-group
-            .actions
-              = f.submit('Update', class: 'btn btn-primary', disabled: true)
+          - if current_user.provider != 'crowd'
+            .form-group
+              .actions
+                = f.submit('Update', class: 'btn btn-primary', disabled: true)
+
 
     #add_application_token_form.collapse
       = form_for :application_token, url: application_tokens_path, remote: true, html: {id: 'new-application-token-form', class: 'form-horizontal', role: 'form'} do |f|
@@ -80,7 +82,7 @@
                       any affiliations with any team will be lost.
                   = submit_tag('Disable', class: 'btn btn-primary')
 
-  - unless ::Portus::LDAP.enabled?
+  - unless ::Portus::LDAP.enabled? || current_user.provider == 'crowd'
     - if current_user.email?
       .col-sm-6
         .panel.panel-default
@@ -107,4 +109,3 @@
               .form-group
                 .actions
                   = f.submit('Change', class: 'btn btn-primary', disabled: true)
-

@@ -24,13 +24,22 @@ class Auth::SessionsController < Devise::SessionsController
   # showing the redundant "Signed in/out" flashy messages.
 
   def create
-    super
+    #super
+    if user_signed_in?
+      redirect_to '/'
+      return
+    end
 
-    if ::Portus::LDAP.enabled? && session[:first_login]
-      session[:first_login] = nil
-      session_flash(current_user, nil)
-    else
-      flash[:notice] = nil
+    username = params[:user][:username]
+    password = params[:user][:password]
+
+    begin
+      @user = Auth::Crowd.login(username, password)
+      sign_in_and_redirect @user
+    rescue Exception => error
+      redirect_to '/users/sign_in'
+      flash[:alert] = error.message
+      return
     end
   end
 

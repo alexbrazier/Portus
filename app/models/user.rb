@@ -22,6 +22,7 @@
 #  failed_attempts        :integer          default("0")
 #  locked_at              :datetime
 #  display_name           :string(255)
+#  provider               :string(255)
 #  namespace_id           :integer
 #
 # Indexes
@@ -89,6 +90,16 @@ class User < ActiveRecord::Base
   # Returns true if the current user is the Portus user.
   def portus?
     username == "portus"
+  end
+
+  def self.from_crowd(auth)
+    where(username: auth[:username], provider: 'crowd').first_or_create do |user|
+      user.username = auth[:username]
+      user.provider = 'crowd'
+      user.display_name = auth[:name]
+      user.email = auth[:email]
+      user.password = Devise.friendly_token[0,20]
+    end
   end
 
   # Returns the username to be displayed.

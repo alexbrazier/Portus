@@ -21,8 +21,9 @@
 #  ldap_name              :string(255)
 #  failed_attempts        :integer          default("0")
 #  locked_at              :datetime
-#  display_name           :string(255)
 #  namespace_id           :integer
+#  display_name           :string(255)
+#  provider               :string(255)
 #
 # Indexes
 #

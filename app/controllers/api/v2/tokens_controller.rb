@@ -11,10 +11,17 @@ class Api::V2::TokensController < Api::BaseController
   # authentication (Portus' database, LDAP) are going to be skipped.
   def attempt_authentication_against_application_tokens
     user = authenticate_with_http_basic do |username, password|
-      user = User.find_by(username: username)
-      user if user && user.application_token_valid?(password)
+      if user = User.find_by(username: username, provider: nil)
+        sign_in(user, store: true) if user && user.application_token_valid?(password)
+      else
+        begin
+          user = Auth::Crowd.login(username, password)
+          sign_in(user, store: true) if user
+        rescue Exception => error
+          # Ignore auth faile as it will automatically reject
+        end
+      end
     end
-    sign_in(user, store: true) if user
   end
 
   # Returns the token that the docker client should use in order to perform
